@@ -1,0 +1,79 @@
+version: "3.9"
+
+############# NETWORKS
+
+networks:
+  default:
+    driver: bridge
+  npm_proxy:
+    name: npm_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.89.0/24
+  socket_proxy:
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
+
+
+########## EXTENSION FIELDS
+x-environment: &default-tz-puid-pgid
+  TZ: $TZ
+  PUID: $PUID
+  PGID: $PGID
+
+x-common-keys-core: &common-keys-core
+  networks:
+    - npm_proxy
+  security_opt:
+    - no-new-privileges:true
+  restart: always
+
+x-common-keys-apps: &common-keys-apps
+  networks:
+    - npm_proxy
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+
+
+########### SERVICES
+
+services:
+  ############ FRONTENDS
+
+  # Nginx Proxy Manager - Reverse Proxy with LetsEncrypt
+  npm:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    container_name: nginx-proxy-manager
+    image: 'jc21/nginx-proxy-manager:latest'
+    # For Static IP
+    networks:
+      npm_proxy:
+        ipv4_address: 192.168.89.254
+    ports:
+      - '80:80' # Public HTTP Port.  Port Forwarding on Router is ON
+      - '443:443' # Public HTTPS Port. Port Forwarding on Router is ON
+      - '81:81' # Admin Web Port. Port Forwarding on Router is OFF. Internal Network Access only
+    #volumes:
+    # - $DOCKERDIR/appdata/npm/config:/config
+    #  - $DOCKERDIR/appdata/npm/letsencrypt:/etc/letsencrypt
+    #  - $DOCKERDIR/appdata/npm/data:/data
+    environment:
+      DB_SQLITE_FILE: "/config/database.sqlite"
+      DISABLE_IPV6: 'true'
+  
+  # Shlink - Link shortener
+  shlink:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    container_name: shlink
+    image: shlinkio/shlink:stable
+    networks:
+      - npm_proxy
+    environment:
+      DEFAULT_DOMAIN=exacttech.link
+      IS_HTTPS_ENABLED=true
+      GEOLITE_LICENSE_KEY=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
