@@ -58,10 +58,10 @@ services:
       - '80:80' # Public HTTP Port.  Port Forwarding on Router is ON
       - '443:443' # Public HTTPS Port. Port Forwarding on Router is ON
       - '81:81' # Admin Web Port. Port Forwarding on Router is OFF. Internal Network Access only
-    #volumes:
-    # - $DOCKERDIR/appdata/npm/config:/config
-    #  - $DOCKERDIR/appdata/npm/letsencrypt:/etc/letsencrypt
-    #  - $DOCKERDIR/appdata/npm/data:/data
+    volumes:
+      - $DOCKERDIR/appdata/npm/config:/config
+      - $DOCKERDIR/appdata/npm/letsencrypt:/etc/letsencrypt
+      - $DOCKERDIR/appdata/npm/data:/data
     environment:
       DB_SQLITE_FILE: "/config/database.sqlite"
       DISABLE_IPV6: 'true'
@@ -73,15 +73,17 @@ services:
     image: shlinkio/shlink:stable
     networks:
       - npm_proxy
+    #ports:
+    #  - '8080:8080'
     environment:
-      DEFAULT_DOMAIN=exacttech.link
-      IS_HTTPS_ENABLED=true
-      GEOLITE_LICENSE_KEY=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
+      - DEFAULT_DOMAIN=exacttech.link
+      - IS_HTTPS_ENABLED=true
+      - GEOLITE_LICENSE_KEY=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
 
   # Shlink Web Client
   shlink-web-client:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
-    container_name: shlink_web_client
-    image: shlinkio/shlink-web-Client
+    container_name: shlink-web-client
+    image: shlinkio/shlink-web-client
     networks:
       - npm_proxy
