@@ -77,3 +77,11 @@ services:
       DEFAULT_DOMAIN=exacttech.link
       IS_HTTPS_ENABLED=true
       GEOLITE_LICENSE_KEY=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
+
+  # Shlink Web Client
+  shlink-web-client:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    container_name: shlink_web_client
+    image: shlinkio/shlink-web-Client
+    networks:
+      - npm_proxy
